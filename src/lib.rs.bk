@@ -60,11 +60,13 @@ pub struct Ix {
 }
 
 impl Ix {
-  pub fn mk(x: u8, y: u8) -> Option<Ix> { if x <= 9 && y <= 9 { Some(Ix { x: x, y: y }) } else { None } }
-
-  pub fn x(&self) -> u8 { self.x }
-
-  pub fn y(&self) -> u8 { self.y }
+  pub fn mk(x: u8, y: u8) -> Option<Ix> {
+    if x <= 9 && y <= 9 {
+      Some(Ix { x: x, y: y })
+    } else {
+      None
+    }
+  }
 }
 
 impl From<Ix> for (u8, u8) {
@@ -121,10 +123,4 @@ impl<Tn: turn::Turn> Default for Game<Tn> {
       phantom_turn: PhantomData,
     }
   }
-}
-
-impl<Tn: turn::Turn> Index<Ix> for Game<Tn> {
-  type Output = Position;
-
-  fn index(&self, ix: Ix) -> &Position { &self.papamu[ix] }
 }
