@@ -17,7 +17,7 @@
 name = "konane"
 version = "0.1.0"
 authors = ["Alexander Ronald Altman <alexanderaltman@me.com>"]
-description = "A library for the ancient Polynesian game kōnane"
+description = "A library and executable for the ancient Polynesian game kōnane"
 repository = "https://github.com/pthariensflame/konane"
 readme = "README.md"
 license = "Apache-2.0"
