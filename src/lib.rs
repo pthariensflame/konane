@@ -13,9 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ops::Index;
 use std::marker::PhantomData;
-use std::fmt;
+use std::{fmt, hash, ops};
 
 #[macro_use]
 extern crate error_chain;
@@ -52,7 +51,23 @@ pub mod turn {
       foreign_links {}
       errors {
         IllegalTarget(source_occ: ::Occupancy, source_pos: ::Position, target_pos: ::Position) {
-          description("Cannot move indicated piece to target position")
+          description("Cannot legally move indicated piece to target position")
+          display("Cannot move {} piece at source {} to target {}", source_occ, source_pos, target_pos)
+        }
+        OcuppiedTarget(target_pos: ::Position) {
+          description("Target position is not empty")
+          display("Target {} is not empty", target_pos)
+        }
+        EmptySource(source_pos: ::Position) {
+          description("Source position is empty")
+          display("Source {} is not empty", source_pos)
+        }
+        WrongColor(source_occ: ::Occupancy, source_pos: ::Position, desired_occ: ::Occupancy) {
+          description("Cannot legally move indicated piece during this turn")
+          display("Cannot move {} piece at source {} during {} turn", source_occ, source_pos, desired_occ)
+        }
+        NoTargets(source_occ: ::Occupancy, source_pos: ::Position, target_pos: ::Position) {
+          description("No targets were given")
           display("Cannot move {} piece at source {} to target {}", source_occ, source_pos, target_pos)
         }
       }
@@ -135,7 +150,7 @@ impl fmt::Display for Position {
 }
 
 impl Position {
-  pub fn mk(x: u8, y: u8) -> Option<Position> {
+  pub fn new(x: u8, y: u8) -> Option<Position> {
     if x <= 9 && y <= 9 { Some(Position { x: x, y: y }) } else { None }
   }
 
@@ -178,10 +193,16 @@ impl From<Position> for (char, char) {
   fn from(ix: Position) -> (char, char) { ((ix.x + 65) as char, (ix.y + 65) as char) }
 }
 
-impl Index<Position> for Papamu {
+impl ops::Index<Position> for Papamu {
   type Output = Occupancy;
 
   fn index(&self, ix: Position) -> &Occupancy { &self.board[usize::from(ix.x)][usize::from(ix.y)] }
+}
+
+impl ops::IndexMut<Position> for Papamu {
+  fn index_mut(&mut self, ix: Position) -> &mut Occupancy {
+    &mut self.board[usize::from(ix.x)][usize::from(ix.y)]
+  }
 }
 
 pub struct Game<Tn: turn::Turn> {
@@ -211,12 +232,110 @@ impl<Tn: turn::Turn> Clone for Game<Tn> {
 
 impl<Tn: turn::Turn> Copy for Game<Tn> {}
 
-impl<Tn: turn::Turn> Index<Position> for Game<Tn> {
+impl<Tn: turn::Turn> hash::Hash for Game<Tn> {
+  fn hash<H: hash::Hasher>(&self, hshr: &mut H) {
+    self.papamu.hash(hshr);
+    self.phantom_turn.hash(hshr);
+  }
+}
+
+impl<Tn: turn::Turn> ops::Index<Position> for Game<Tn> {
   type Output = Occupancy;
 
   fn index(&self, ix: Position) -> &Occupancy { &self.papamu[ix] }
 }
 
 impl<Tn: turn::Turn> Game<Tn> {
-  pub fn papamu(&self) -> Papamu { self.papamu }
+  pub fn papamu(&self) -> &Papamu { &self.papamu }
+
+  fn next_subturn(&mut self, current: Position, target: Position) -> turn::errors::Result<()> {
+    if self[target].is_occupied() {
+      try!(Err(turn::errors::ErrorKind::OcuppiedTarget(target)))
+    }
+    Ok(())
+  }
+
+  pub fn next_turn<T: ops::Deref<Target = Position>, Ts: IntoIterator<Item = T>>
+    (&self,
+     source: Position,
+     targets: Ts)
+     -> turn::errors::Result<Game<Tn::Next>> {
+    let mut game = *self;
+    if game[source].is_empty() {
+      try!(Err(turn::errors::ErrorKind::EmptySource(source)))
+    }
+    let mut current = source;
+    let mut target: Position;
+    let mut targets_empty = true;
+    for target_ref in targets {
+      targets_empty = false;
+      target = *target_ref;
+      try!(game.next_subturn(current, target));
+      current = target;
+    }
+    if targets_empty {
+
+    }
+    Ok(Game {
+      papamu: game.papamu,
+      phantom_turn: PhantomData,
+    })
+  }
+}
+
+#[derive(Clone,Copy,Debug,Hash)]
+pub enum AnyGame {
+  White(Game<turn::White>),
+  Black(Game<turn::Black>),
+}
+
+impl From<Game<turn::White>> for AnyGame {
+  fn from(game: Game<turn::White>) -> AnyGame { AnyGame::White(game) }
+}
+
+impl From<Game<turn::Black>> for AnyGame {
+  fn from(game: Game<turn::Black>) -> AnyGame { AnyGame::Black(game) }
+}
+
+impl ops::Index<Position> for AnyGame {
+  type Output = Occupancy;
+
+  fn index(&self, ix: Position) -> &Occupancy { &self.papamu()[ix] }
+}
+
+impl AnyGame {
+  pub fn by_color<'a,
+                  R,
+                  WR: Into<R>,
+                  BR: Into<R>,
+                  F: FnOnce(&'a Game<turn::White>) -> WR,
+                  G: FnOnce(&'a Game<turn::Black>) -> BR>
+    (&'a self,
+     f: F,
+     g: G)
+     -> R {
+    match self {
+      &AnyGame::White(ref game) => f(game).into(),
+      &AnyGame::Black(ref game) => g(game).into(),
+    }
+  }
+
+  pub fn current_player(&self) -> Occupancy { self.by_color(|_| Occupancy::White, |_| Occupancy::Black) }
+
+  pub fn as_white_game(&self) -> Option<&Game<turn::White>> { self.by_color(Some, |_| None) }
+
+  pub fn as_black_game(&self) -> Option<&Game<turn::Black>> { self.by_color(|_| None, Some) }
+
+  pub fn papamu(&self) -> &Papamu { self.by_color(|game| game.papamu(), |game| game.papamu()) }
+
+  pub fn next_turn<T: ops::Deref<Target = Position>, Ts: IntoIterator<Item = T>>
+    (&self,
+     source: Position,
+     targets: Ts)
+     -> turn::errors::Result<AnyGame> {
+    Ok(match *self {
+      AnyGame::White(game) => AnyGame::Black(try!(game.next_turn(source, targets))),
+      AnyGame::Black(game) => AnyGame::White(try!(game.next_turn(source, targets))),
+    })
+  }
 }
