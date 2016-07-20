@@ -28,19 +28,19 @@ pub mod turn {
   pub trait Turn {
     type Next: Turn;
 
-    fn piece_type() -> super::Position;
+    fn piece_type() -> super::Occupancy;
   }
 
   impl Turn for Black {
     type Next = White;
 
-    fn piece_type() -> super::Position { super::Position::Black }
+    fn piece_type() -> super::Occupancy { super::Occupancy::Black }
   }
 
   impl Turn for White {
     type Next = Black;
 
-    fn piece_type() -> super::Position { super::Position::White }
+    fn piece_type() -> super::Occupancy { super::Occupancy::White }
   }
 
   pub mod errors {
@@ -51,8 +51,9 @@ pub mod turn {
       links {}
       foreign_links {}
       errors {
-        IllegalTarget(source_pos: ::Position, target_pos: ::Position) {
-          description("Cannot move {} piece from ")
+        IllegalTarget(source_occ: ::Occupancy, source_pos: ::Position, target_pos: ::Position) {
+          description("Cannot move indicated piece to target position")
+          display("Cannot move {} piece at source {} to target {}", source_occ, source_pos, target_pos)
         }
       }
     }
@@ -73,64 +74,70 @@ pub mod errors {
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
-pub enum Position {
+pub enum Occupancy {
   White,
   Black,
   Empty,
 }
 
-impl fmt::Display for Position {
+impl fmt::Display for Occupancy {
   fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      Position::White => write!(fmtr, "white"),
-      Position::Black => write!(fmtr, "black"),
-      Position::Empty => write!(fmtr, "empty"),
+      Occupancy::White => write!(fmtr, "white"),
+      Occupancy::Black => write!(fmtr, "black"),
+      Occupancy::Empty => write!(fmtr, "empty"),
     }
   }
 }
 
-impl Position {
-  pub fn is_occupied(&self) -> bool { self != &Position::Empty }
+impl Occupancy {
+  pub fn is_empty(&self) -> bool { *self == Occupancy::Empty }
 
-  pub fn is_empty(&self) -> bool { self == &Position::Empty }
+  pub fn is_occupied(&self) -> bool { *self != Occupancy::Empty }
 
-  pub fn is_white(&self) -> bool { self == &Position::White }
+  pub fn is_white(&self) -> bool { *self == Occupancy::White }
 
-  pub fn is_black(&self) -> bool { self == &Position::Black }
+  pub fn is_nonwhite(&self) -> bool { *self != Occupancy::White }
+
+  pub fn is_black(&self) -> bool { *self == Occupancy::Black }
+
+  pub fn is_nonblack(&self) -> bool { *self != Occupancy::Black }
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 pub struct Papamu {
-  board: [[Position; 10]; 10],
+  board: [[Occupancy; 10]; 10],
 }
 
 impl Default for Papamu {
   fn default() -> Papamu {
-    let mut board = [[Position::White; 10]; 10];
+    let mut board = [[Occupancy::White; 10]; 10];
     for (_, pos) in board.iter_mut().enumerate().flat_map(|(x, part)| {
       part.iter_mut().enumerate().filter(move |&(y, _)| (x + y) % 2 == 0)
     }) {
-      *pos = Position::Black;
+      *pos = Occupancy::Black;
     }
     Papamu { board: board }
   }
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
-pub struct Ix {
+pub struct Position {
   x: u8,
   y: u8,
 }
 
-impl fmt::Display for Ix {
+impl fmt::Display for Position {
   fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
     let (x, y) = <(char, u8)>::from(*self);
     write!(fmtr, "position {}{}", x, y)
   }
 }
 
-impl Ix {
-  pub fn mk(x: u8, y: u8) -> Option<Ix> { if x <= 9 && y <= 9 { Some(Ix { x: x, y: y }) } else { None } }
+impl Position {
+  pub fn mk(x: u8, y: u8) -> Option<Position> {
+    if x <= 9 && y <= 9 { Some(Position { x: x, y: y }) } else { None }
+  }
 
   pub fn x(&self) -> u8 { self.x }
 
@@ -155,26 +162,26 @@ impl Ix {
   }
 }
 
-impl From<Ix> for (u8, u8) {
-  fn from(ix: Ix) -> (u8, u8) { (ix.x, ix.y) }
+impl From<Position> for (u8, u8) {
+  fn from(ix: Position) -> (u8, u8) { (ix.x, ix.y) }
 }
 
-impl From<Ix> for (char, u8) {
-  fn from(ix: Ix) -> (char, u8) { ((ix.x + 65) as char, ix.y) }
+impl From<Position> for (char, u8) {
+  fn from(ix: Position) -> (char, u8) { ((ix.x + 65) as char, ix.y) }
 }
 
-impl From<Ix> for (u8, char) {
-  fn from(ix: Ix) -> (u8, char) { (ix.x, (ix.y + 65) as char) }
+impl From<Position> for (u8, char) {
+  fn from(ix: Position) -> (u8, char) { (ix.x, (ix.y + 65) as char) }
 }
 
-impl From<Ix> for (char, char) {
-  fn from(ix: Ix) -> (char, char) { ((ix.x + 65) as char, (ix.y + 65) as char) }
+impl From<Position> for (char, char) {
+  fn from(ix: Position) -> (char, char) { ((ix.x + 65) as char, (ix.y + 65) as char) }
 }
 
-impl Index<Ix> for Papamu {
-  type Output = Position;
+impl Index<Position> for Papamu {
+  type Output = Occupancy;
 
-  fn index(&self, ix: Ix) -> &Position { &self.board[usize::from(ix.x)][usize::from(ix.y)] }
+  fn index(&self, ix: Position) -> &Occupancy { &self.board[usize::from(ix.x)][usize::from(ix.y)] }
 }
 
 pub struct Game<Tn: turn::Turn> {
@@ -204,10 +211,10 @@ impl<Tn: turn::Turn> Clone for Game<Tn> {
 
 impl<Tn: turn::Turn> Copy for Game<Tn> {}
 
-impl<Tn: turn::Turn> Index<Ix> for Game<Tn> {
-  type Output = Position;
+impl<Tn: turn::Turn> Index<Position> for Game<Tn> {
+  type Output = Occupancy;
 
-  fn index(&self, ix: Ix) -> &Position { &self.papamu[ix] }
+  fn index(&self, ix: Position) -> &Occupancy { &self.papamu[ix] }
 }
 
 impl<Tn: turn::Turn> Game<Tn> {
