@@ -17,11 +17,76 @@ use std::ops::Index;
 use std::marker::PhantomData;
 use std::fmt;
 
+#[macro_use]
+extern crate error_chain;
+
+pub mod turn {
+  pub enum Black {}
+
+  pub enum White {}
+
+  pub trait Turn {
+    type Next: Turn;
+
+    fn piece_type() -> super::Position;
+  }
+
+  impl Turn for Black {
+    type Next = White;
+
+    fn piece_type() -> super::Position { super::Position::Black }
+  }
+
+  impl Turn for White {
+    type Next = Black;
+
+    fn piece_type() -> super::Position { super::Position::White }
+  }
+
+  pub mod errors {
+    error_chain! {
+      types {
+        Error, ErrorKind, ChainErr, Result;
+      }
+      links {}
+      foreign_links {}
+      errors {
+        IllegalTarget(source_pos: ::Position, target_pos: ::Position) {
+          description("Cannot move {} piece from ")
+        }
+      }
+    }
+  }
+}
+
+pub mod errors {
+  error_chain! {
+    types {
+      Error, ErrorKind, ChainErr, Result;
+    }
+    links {
+      ::turn::errors::Error, ::turn::errors::ErrorKind, Turn;
+    }
+    foreign_links {}
+    errors {}
+  }
+}
+
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 pub enum Position {
   White,
   Black,
   Empty,
+}
+
+impl fmt::Display for Position {
+  fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+    match *self {
+      Position::White => write!(fmtr, "white"),
+      Position::Black => write!(fmtr, "black"),
+      Position::Empty => write!(fmtr, "empty"),
+    }
+  }
 }
 
 impl Position {
@@ -57,6 +122,13 @@ pub struct Ix {
   y: u8,
 }
 
+impl fmt::Display for Ix {
+  fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
+    let (x, y) = <(char, u8)>::from(*self);
+    write!(fmtr, "position {}{}", x, y)
+  }
+}
+
 impl Ix {
   pub fn mk(x: u8, y: u8) -> Option<Ix> { if x <= 9 && y <= 9 { Some(Ix { x: x, y: y }) } else { None } }
 
@@ -87,34 +159,22 @@ impl From<Ix> for (u8, u8) {
   fn from(ix: Ix) -> (u8, u8) { (ix.x, ix.y) }
 }
 
+impl From<Ix> for (char, u8) {
+  fn from(ix: Ix) -> (char, u8) { ((ix.x + 65) as char, ix.y) }
+}
+
+impl From<Ix> for (u8, char) {
+  fn from(ix: Ix) -> (u8, char) { (ix.x, (ix.y + 65) as char) }
+}
+
+impl From<Ix> for (char, char) {
+  fn from(ix: Ix) -> (char, char) { ((ix.x + 65) as char, (ix.y + 65) as char) }
+}
+
 impl Index<Ix> for Papamu {
   type Output = Position;
 
   fn index(&self, ix: Ix) -> &Position { &self.board[usize::from(ix.x)][usize::from(ix.y)] }
-}
-
-pub mod turn {
-  pub enum Black {}
-
-  pub enum White {}
-
-  pub trait Turn {
-    type Next: Turn;
-
-    fn piece_type() -> super::Position;
-  }
-
-  impl Turn for Black {
-    type Next = White;
-
-    fn piece_type() -> super::Position { super::Position::Black }
-  }
-
-  impl Turn for White {
-    type Next = Black;
-
-    fn piece_type() -> super::Position { super::Position::White }
-  }
 }
 
 pub struct Game<Tn: turn::Turn> {
