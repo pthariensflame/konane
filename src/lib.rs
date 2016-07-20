@@ -41,9 +41,10 @@ pub mod turn {
 
     fn piece_type() -> super::Occupancy { super::Occupancy::White }
   }
+}
 
-  pub mod errors {
-    error_chain! {
+pub mod errors {
+  error_chain! {
       types {
         Error, ErrorKind, ChainErr, Result;
       }
@@ -66,26 +67,12 @@ pub mod turn {
           description("Cannot legally move indicated piece during this turn")
           display("Cannot move {} piece at source {} during {} turn", source_occ, source_pos, desired_occ)
         }
-        NoTargets(source_occ: ::Occupancy, source_pos: ::Position, target_pos: ::Position) {
-          description("No targets were given")
-          display("Cannot move {} piece at source {} to target {}", source_occ, source_pos, target_pos)
+        NoTargets(source_occ: ::Occupancy, source_pos: ::Position) {
+          description("No target positions were given")
+          display("No target positions were given for the {} piece at source {}", source_occ, source_pos)
         }
       }
     }
-  }
-}
-
-pub mod errors {
-  error_chain! {
-    types {
-      Error, ErrorKind, ChainErr, Result;
-    }
-    links {
-      ::turn::errors::Error, ::turn::errors::ErrorKind, Turn;
-    }
-    foreign_links {}
-    errors {}
-  }
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
@@ -156,23 +143,37 @@ impl Position {
 
   pub fn x(&self) -> u8 { self.x }
 
-  pub fn set_x(&mut self, new_x: u8) -> bool {
+  pub fn set_x(&mut self, new_x: u8) -> Option<u8> {
     if new_x <= 9 {
+      let old_x = self.y;
       self.x = new_x;
-      true
+      Some(old_x)
     } else {
-      false
+      None
     }
   }
 
   pub fn y(&self) -> u8 { self.y }
 
-  pub fn set_y(&mut self, new_y: u8) -> bool {
+  pub fn set_y(&mut self, new_y: u8) -> Option<u8> {
     if new_y <= 9 {
+      let old_y = self.y;
       self.y = new_y;
-      true
+      Some(old_y)
     } else {
-      false
+      None
+    }
+  }
+
+  pub fn biadjacency(&self, other: Position) -> Option<Position> {
+    if (self.y == other.y && self.x ^ other.x == 0b00000010) ||
+       (self.x == other.x && self.y ^ other.y == 0b00000010) {
+      Some(Position {
+        x: (self.x + other.x) / 2,
+        y: (self.y + other.y) / 2,
+      })
+    } else {
+      None
     }
   }
 }
@@ -230,6 +231,14 @@ impl<Tn: turn::Turn> Clone for Game<Tn> {
   fn clone(&self) -> Game<Tn> { *self }
 }
 
+impl<Tn: turn::Turn> PartialEq for Game<Tn> {
+  fn eq(&self, other: &Game<Tn>) -> bool { self.papamu == other.papamu }
+
+  fn ne(&self, other: &Game<Tn>) -> bool { self.papamu != other.papamu }
+}
+
+impl<Tn: turn::Turn> Eq for Game<Tn> {}
+
 impl<Tn: turn::Turn> Copy for Game<Tn> {}
 
 impl<Tn: turn::Turn> hash::Hash for Game<Tn> {
@@ -248,10 +257,12 @@ impl<Tn: turn::Turn> ops::Index<Position> for Game<Tn> {
 impl<Tn: turn::Turn> Game<Tn> {
   pub fn papamu(&self) -> &Papamu { &self.papamu }
 
-  fn next_subturn(&mut self, current: Position, target: Position) -> turn::errors::Result<()> {
+  fn next_subturn(&mut self, current: Position, target: Position) -> errors::Result<()> {
     if self[target].is_occupied() {
-      try!(Err(turn::errors::ErrorKind::OcuppiedTarget(target)))
+      try!(Err(errors::ErrorKind::OcuppiedTarget(target)))
     }
+    self.papamu[current] = Occupancy::Empty;
+    self.papamu[target] = Tn::piece_type();
     Ok(())
   }
 
@@ -259,10 +270,13 @@ impl<Tn: turn::Turn> Game<Tn> {
     (&self,
      source: Position,
      targets: Ts)
-     -> turn::errors::Result<Game<Tn::Next>> {
+     -> errors::Result<Game<Tn::Next>> {
     let mut game = *self;
     if game[source].is_empty() {
-      try!(Err(turn::errors::ErrorKind::EmptySource(source)))
+      try!(Err(errors::ErrorKind::EmptySource(source)))
+    }
+    if game[source] != Tn::piece_type() {
+      try!(Err(errors::ErrorKind::WrongColor(game[source], source, Tn::piece_type())))
     }
     let mut current = source;
     let mut target: Position;
@@ -274,7 +288,7 @@ impl<Tn: turn::Turn> Game<Tn> {
       current = target;
     }
     if targets_empty {
-
+      try!(Err(errors::ErrorKind::NoTargets(self[source], source)))
     }
     Ok(Game {
       papamu: game.papamu,
@@ -283,7 +297,7 @@ impl<Tn: turn::Turn> Game<Tn> {
   }
 }
 
-#[derive(Clone,Copy,Debug,Hash)]
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 pub enum AnyGame {
   White(Game<turn::White>),
   Black(Game<turn::Black>),
@@ -304,38 +318,79 @@ impl ops::Index<Position> for AnyGame {
 }
 
 impl AnyGame {
-  pub fn by_color<'a,
-                  R,
+  pub fn by_color<R,
                   WR: Into<R>,
                   BR: Into<R>,
-                  F: FnOnce(&'a Game<turn::White>) -> WR,
-                  G: FnOnce(&'a Game<turn::Black>) -> BR>
-    (&'a self,
+                  F: FnOnce(Game<turn::White>) -> WR,
+                  G: FnOnce(Game<turn::Black>) -> BR>
+    (self,
      f: F,
      g: G)
      -> R {
     match self {
-      &AnyGame::White(ref game) => f(game).into(),
-      &AnyGame::Black(ref game) => g(game).into(),
+      AnyGame::White(game) => f(game).into(),
+      AnyGame::Black(game) => g(game).into(),
     }
   }
 
-  pub fn current_player(&self) -> Occupancy { self.by_color(|_| Occupancy::White, |_| Occupancy::Black) }
+  #[allow(unknown_lints, needless_lifetimes)]
+  pub fn by_color_ref<'a,
+                      R,
+                      WR: Into<R>,
+                      BR: Into<R>,
+                      F: FnOnce(&'a Game<turn::White>) -> WR,
+                      G: FnOnce(&'a Game<turn::Black>) -> BR>
+    (&'a self,
+     f: F,
+     g: G)
+     -> R {
+    match *self {
+      AnyGame::White(ref game) => f(game).into(),
+      AnyGame::Black(ref game) => g(game).into(),
+    }
+  }
 
-  pub fn as_white_game(&self) -> Option<&Game<turn::White>> { self.by_color(Some, |_| None) }
+  #[allow(unknown_lints, needless_lifetimes)]
+  pub fn by_color_mut<'a,
+                      R,
+                      WR: Into<R>,
+                      BR: Into<R>,
+                      F: FnOnce(&'a mut Game<turn::White>) -> WR,
+                      G: FnOnce(&'a mut Game<turn::Black>) -> BR>
+    (&'a mut self,
+     f: F,
+     g: G)
+     -> R {
+    match *self {
+      AnyGame::White(ref mut game) => f(game).into(),
+      AnyGame::Black(ref mut game) => g(game).into(),
+    }
+  }
 
-  pub fn as_black_game(&self) -> Option<&Game<turn::Black>> { self.by_color(|_| None, Some) }
+  pub fn current_player(&self) -> Occupancy { self.by_color_ref(|_| Occupancy::White, |_| Occupancy::Black) }
 
-  pub fn papamu(&self) -> &Papamu { self.by_color(|game| game.papamu(), |game| game.papamu()) }
+  pub fn to_white_game(self) -> Option<Game<turn::White>> { self.by_color(Some, |_| None) }
 
-  pub fn next_turn<T: ops::Deref<Target = Position>, Ts: IntoIterator<Item = T>>
-    (&self,
-     source: Position,
-     targets: Ts)
-     -> turn::errors::Result<AnyGame> {
-    Ok(match *self {
+  pub fn to_black_game(self) -> Option<Game<turn::Black>> { self.by_color(|_| None, Some) }
+
+  pub fn as_white_game(&self) -> Option<&Game<turn::White>> { self.by_color_ref(Some, |_| None) }
+
+  pub fn as_black_game(&self) -> Option<&Game<turn::Black>> { self.by_color_ref(|_| None, Some) }
+
+  pub fn as_white_game_mut(&mut self) -> Option<&mut Game<turn::White>> { self.by_color_mut(Some, |_| None) }
+
+  pub fn as_black_game_mut(&mut self) -> Option<&mut Game<turn::Black>> { self.by_color_mut(|_| None, Some) }
+
+  pub fn papamu(&self) -> &Papamu { self.by_color_ref(Game::papamu, Game::papamu) }
+
+  pub fn next_turn<T: ops::Deref<Target = Position>, Ts: IntoIterator<Item = T>>(&mut self,
+                                                                                 source: Position,
+                                                                                 targets: Ts)
+                                                                                 -> errors::Result<()> {
+    *self = match *self {
       AnyGame::White(game) => AnyGame::Black(try!(game.next_turn(source, targets))),
       AnyGame::Black(game) => AnyGame::White(try!(game.next_turn(source, targets))),
-    })
+    };
+    Ok(())
   }
 }
