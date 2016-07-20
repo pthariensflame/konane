@@ -149,3 +149,9 @@ impl<Tn: turn::Turn> Index<Ix> for Game<Tn> {
 
   fn index(&self, ix: Ix) -> &Position { &self.papamu[ix] }
 }
+
+impl<Tn: turn::Turn> Game<Tn> {
+  pub fn papamu(&self) -> Papamu {
+    self.papamu
+  }
+}
