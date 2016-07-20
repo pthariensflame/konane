@@ -17,7 +17,7 @@ use std::ops::Index;
 use std::marker::PhantomData;
 use std::fmt;
 
-#[derive(Clone,Copy,PartialEq,Eq,Debug)]
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 pub enum Position {
   White,
   Black,
@@ -34,7 +34,7 @@ impl Position {
   pub fn is_black(&self) -> bool { self == &Position::Black }
 }
 
-#[derive(Clone,Copy,PartialEq,Eq,Debug)]
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 pub struct Papamu {
   board: [[Position; 10]; 10],
 }
@@ -42,18 +42,16 @@ pub struct Papamu {
 impl Default for Papamu {
   fn default() -> Papamu {
     let mut board = [[Position::White; 10]; 10];
-    for x in 0..9 {
-      for y in 0..9 {
-        if (x + y) % 2 == 0 {
-          board[x][y] = Position::Black;
-        }
-      }
+    for (_, pos) in board.iter_mut().enumerate().flat_map(|(x, part)| {
+      part.iter_mut().enumerate().filter(move |&(y, _)| (x + y) % 2 == 0)
+    }) {
+      *pos = Position::Black;
     }
     Papamu { board: board }
   }
 }
 
-#[derive(Clone,Copy,PartialEq,Eq,Debug)]
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 pub struct Ix {
   x: u8,
   y: u8,
@@ -78,10 +76,8 @@ impl Index<Ix> for Papamu {
 }
 
 pub mod turn {
-  #[derive(Clone,Copy,Debug)]
   pub enum Black {}
 
-  #[derive(Clone,Copy,Debug)]
   pub enum White {}
 
   pub trait Turn {
