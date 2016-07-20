@@ -151,7 +151,5 @@ impl<Tn: turn::Turn> Index<Ix> for Game<Tn> {
 }
 
 impl<Tn: turn::Turn> Game<Tn> {
-  pub fn papamu(&self) -> Papamu {
-    self.papamu
-  }
+  pub fn papamu(&self) -> Papamu { self.papamu }
 }
