@@ -62,7 +62,25 @@ impl Ix {
 
   pub fn x(&self) -> u8 { self.x }
 
+  pub fn set_x(&mut self, new_x: u8) -> bool {
+    if new_x <= 9 {
+      self.x = new_x;
+      true
+    } else {
+      false
+    }
+  }
+
   pub fn y(&self) -> u8 { self.y }
+
+  pub fn set_y(&mut self, new_y: u8) -> bool {
+    if new_y <= 9 {
+      self.y = new_y;
+      true
+    } else {
+      false
+    }
+  }
 }
 
 impl From<Ix> for (u8, u8) {
@@ -118,6 +136,13 @@ impl<Tn: turn::Turn> Default for Game<Tn> {
     }
   }
 }
+
+#[allow(unknown_lints, expl_impl_clone_on_copy)]
+impl<Tn: turn::Turn> Clone for Game<Tn> {
+  fn clone(&self) -> Game<Tn> { *self }
+}
+
+impl<Tn: turn::Turn> Copy for Game<Tn> {}
 
 impl<Tn: turn::Turn> Index<Ix> for Game<Tn> {
   type Output = Position;
