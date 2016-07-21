@@ -14,6 +14,7 @@
 // limitations under the License.
 
 use std::marker::PhantomData;
+use std::borrow::Borrow;
 use std::{fmt, hash, ops};
 
 #[macro_use]
@@ -51,7 +52,9 @@ pub mod errors {
       links {}
       foreign_links {}
       errors {
-        IllegalTarget(source_occ: ::Occupancy, source_pos: ::Position, target_pos: ::Position) {
+        IllegalTarget(source_occ: ::Occupancy,
+                      source_pos: ::Position,
+                      target_pos: ::Position) {
           description("Cannot legally move indicated piece to target position")
           display("Cannot move {} piece at source {} to target {}", source_occ, source_pos, target_pos)
         }
@@ -63,13 +66,25 @@ pub mod errors {
           description("Source position is empty")
           display("Source {} is not empty", source_pos)
         }
-        WrongColor(source_occ: ::Occupancy, source_pos: ::Position, desired_occ: ::Occupancy) {
+        WrongColor(source_occ: ::Occupancy,
+                   source_pos: ::Position,
+                   desired_occ: ::Occupancy) {
           description("Cannot legally move indicated piece during this turn")
           display("Cannot move {} piece at source {} during {} turn", source_occ, source_pos, desired_occ)
         }
-        NoTargets(source_occ: ::Occupancy, source_pos: ::Position) {
+        NoTargets(source_occ: ::Occupancy,
+                  source_pos: ::Position) {
           description("No target positions were given")
           display("No target positions were given for the {} piece at source {}", source_occ, source_pos)
+        }
+        IllegalJump(source_occ: ::Occupancy,
+                    source_pos: ::Position,
+                    mid_occ: ::Occupancy,
+                    mid_pos: ::Position,
+                    target_pos: ::Position) {
+          description("Cannot perform the indicated jump")
+          display("Cannot jump the {} piece at {} over the currently-{} {} to {}",
+                  source_occ, source_pos, mid_occ, mid_pos, target_pos)
         }
       }
     }
@@ -166,8 +181,9 @@ impl Position {
   }
 
   pub fn biadjacency(&self, other: Position) -> Option<Position> {
-    if (self.y == other.y && self.x ^ other.x == 0b00000010) ||
-       (self.x == other.x && self.y ^ other.y == 0b00000010) {
+    fn two_apart(a: u8, b: u8) -> bool { (a < b && b - a == 2) || (b < a && a - b == 2) }
+    if (self.y == other.y && two_apart(self.x, other.x)) ||
+       (self.x == other.x && two_apart(self.y, other.y)) {
       Some(Position {
         x: (self.x + other.x) / 2,
         y: (self.y + other.y) / 2,
@@ -206,20 +222,20 @@ impl ops::IndexMut<Position> for Papamu {
   }
 }
 
-pub struct Game<Tn: turn::Turn> {
+pub struct GameState<Tn: turn::Turn> {
   papamu: Papamu,
   phantom_turn: PhantomData<Tn>,
 }
 
-impl<Tn: turn::Turn> fmt::Debug for Game<Tn> {
+impl<Tn: turn::Turn> fmt::Debug for GameState<Tn> {
   fn fmt(&self, fmtr: &mut fmt::Formatter) -> fmt::Result {
     fmtr.debug_struct("Game").field("papamu", &self.papamu).field("phantom_turn", &self.phantom_turn).finish()
   }
 }
 
-impl<Tn: turn::Turn> Default for Game<Tn> {
-  fn default() -> Game<Tn> {
-    Game {
+impl<Tn: turn::Turn> Default for GameState<Tn> {
+  fn default() -> GameState<Tn> {
+    GameState {
       papamu: Papamu::default(),
       phantom_turn: PhantomData,
     }
@@ -227,50 +243,58 @@ impl<Tn: turn::Turn> Default for Game<Tn> {
 }
 
 #[allow(unknown_lints, expl_impl_clone_on_copy)]
-impl<Tn: turn::Turn> Clone for Game<Tn> {
-  fn clone(&self) -> Game<Tn> { *self }
+impl<Tn: turn::Turn> Clone for GameState<Tn> {
+  fn clone(&self) -> GameState<Tn> { *self }
 }
 
-impl<Tn: turn::Turn> PartialEq for Game<Tn> {
-  fn eq(&self, other: &Game<Tn>) -> bool { self.papamu == other.papamu }
+impl<Tn: turn::Turn> PartialEq for GameState<Tn> {
+  fn eq(&self, other: &GameState<Tn>) -> bool { self.papamu == other.papamu }
 
-  fn ne(&self, other: &Game<Tn>) -> bool { self.papamu != other.papamu }
+  fn ne(&self, other: &GameState<Tn>) -> bool { self.papamu != other.papamu }
 }
 
-impl<Tn: turn::Turn> Eq for Game<Tn> {}
+impl<Tn: turn::Turn> Eq for GameState<Tn> {}
 
-impl<Tn: turn::Turn> Copy for Game<Tn> {}
+impl<Tn: turn::Turn> Copy for GameState<Tn> {}
 
-impl<Tn: turn::Turn> hash::Hash for Game<Tn> {
+impl<Tn: turn::Turn> hash::Hash for GameState<Tn> {
   fn hash<H: hash::Hasher>(&self, hshr: &mut H) {
     self.papamu.hash(hshr);
     self.phantom_turn.hash(hshr);
   }
 }
 
-impl<Tn: turn::Turn> ops::Index<Position> for Game<Tn> {
+impl<Tn: turn::Turn> ops::Index<Position> for GameState<Tn> {
   type Output = Occupancy;
 
   fn index(&self, ix: Position) -> &Occupancy { &self.papamu[ix] }
 }
 
-impl<Tn: turn::Turn> Game<Tn> {
+impl<Tn: turn::Turn> GameState<Tn> {
   pub fn papamu(&self) -> &Papamu { &self.papamu }
 
   fn next_subturn(&mut self, current: Position, target: Position) -> errors::Result<()> {
     if self[target].is_occupied() {
       try!(Err(errors::ErrorKind::OcuppiedTarget(target)))
     }
-    self.papamu[current] = Occupancy::Empty;
-    self.papamu[target] = Tn::piece_type();
+    if let Some(mid) = current.biadjacency(target) {
+      if self[mid] != <Tn::Next as turn::Turn>::piece_type() {
+        try!(Err(errors::ErrorKind::IllegalJump(self[current], current, self[mid], mid, target)))
+      }
+      self.papamu[current] = Occupancy::Empty;
+      self.papamu[mid] = Occupancy::Empty;
+      self.papamu[target] = Tn::piece_type();
+    } else {
+      try!(Err(errors::ErrorKind::IllegalTarget(self[current], current, target)))
+    }
     Ok(())
   }
 
-  pub fn next_turn<T: ops::Deref<Target = Position>, Ts: IntoIterator<Item = T>>
-    (&self,
-     source: Position,
-     targets: Ts)
-     -> errors::Result<Game<Tn::Next>> {
+  pub fn next_turn<Ts: IntoIterator>(&self,
+                                     source: Position,
+                                     targets: Ts)
+                                     -> errors::Result<GameState<Tn::Next>>
+    where Ts::Item: Borrow<Position> {
     let mut game = *self;
     if game[source].is_empty() {
       try!(Err(errors::ErrorKind::EmptySource(source)))
@@ -283,14 +307,14 @@ impl<Tn: turn::Turn> Game<Tn> {
     let mut targets_empty = true;
     for target_ref in targets {
       targets_empty = false;
-      target = *target_ref;
+      target = *target_ref.borrow();
       try!(game.next_subturn(current, target));
       current = target;
     }
     if targets_empty {
       try!(Err(errors::ErrorKind::NoTargets(self[source], source)))
     }
-    Ok(Game {
+    Ok(GameState {
       papamu: game.papamu,
       phantom_turn: PhantomData,
     })
@@ -298,38 +322,38 @@ impl<Tn: turn::Turn> Game<Tn> {
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
-pub enum AnyGame {
-  White(Game<turn::White>),
-  Black(Game<turn::Black>),
+pub enum Game {
+  White(GameState<turn::White>),
+  Black(GameState<turn::Black>),
 }
 
-impl From<Game<turn::White>> for AnyGame {
-  fn from(game: Game<turn::White>) -> AnyGame { AnyGame::White(game) }
+impl From<GameState<turn::White>> for Game {
+  fn from(game: GameState<turn::White>) -> Game { Game::White(game) }
 }
 
-impl From<Game<turn::Black>> for AnyGame {
-  fn from(game: Game<turn::Black>) -> AnyGame { AnyGame::Black(game) }
+impl From<GameState<turn::Black>> for Game {
+  fn from(game: GameState<turn::Black>) -> Game { Game::Black(game) }
 }
 
-impl ops::Index<Position> for AnyGame {
+impl ops::Index<Position> for Game {
   type Output = Occupancy;
 
   fn index(&self, ix: Position) -> &Occupancy { &self.papamu()[ix] }
 }
 
-impl AnyGame {
+impl Game {
   pub fn by_color<R,
                   WR: Into<R>,
                   BR: Into<R>,
-                  F: FnOnce(Game<turn::White>) -> WR,
-                  G: FnOnce(Game<turn::Black>) -> BR>
+                  F: FnOnce(GameState<turn::White>) -> WR,
+                  G: FnOnce(GameState<turn::Black>) -> BR>
     (self,
      f: F,
      g: G)
      -> R {
     match self {
-      AnyGame::White(game) => f(game).into(),
-      AnyGame::Black(game) => g(game).into(),
+      Game::White(game) => f(game).into(),
+      Game::Black(game) => g(game).into(),
     }
   }
 
@@ -338,15 +362,15 @@ impl AnyGame {
                       R,
                       WR: Into<R>,
                       BR: Into<R>,
-                      F: FnOnce(&'a Game<turn::White>) -> WR,
-                      G: FnOnce(&'a Game<turn::Black>) -> BR>
+                      F: FnOnce(&'a GameState<turn::White>) -> WR,
+                      G: FnOnce(&'a GameState<turn::Black>) -> BR>
     (&'a self,
      f: F,
      g: G)
      -> R {
     match *self {
-      AnyGame::White(ref game) => f(game).into(),
-      AnyGame::Black(ref game) => g(game).into(),
+      Game::White(ref game) => f(game).into(),
+      Game::Black(ref game) => g(game).into(),
     }
   }
 
@@ -355,41 +379,43 @@ impl AnyGame {
                       R,
                       WR: Into<R>,
                       BR: Into<R>,
-                      F: FnOnce(&'a mut Game<turn::White>) -> WR,
-                      G: FnOnce(&'a mut Game<turn::Black>) -> BR>
+                      F: FnOnce(&'a mut GameState<turn::White>) -> WR,
+                      G: FnOnce(&'a mut GameState<turn::Black>) -> BR>
     (&'a mut self,
      f: F,
      g: G)
      -> R {
     match *self {
-      AnyGame::White(ref mut game) => f(game).into(),
-      AnyGame::Black(ref mut game) => g(game).into(),
+      Game::White(ref mut game) => f(game).into(),
+      Game::Black(ref mut game) => g(game).into(),
     }
   }
 
   pub fn current_player(&self) -> Occupancy { self.by_color_ref(|_| Occupancy::White, |_| Occupancy::Black) }
 
-  pub fn to_white_game(self) -> Option<Game<turn::White>> { self.by_color(Some, |_| None) }
+  pub fn to_white_game(self) -> Option<GameState<turn::White>> { self.by_color(Some, |_| None) }
 
-  pub fn to_black_game(self) -> Option<Game<turn::Black>> { self.by_color(|_| None, Some) }
+  pub fn to_black_game(self) -> Option<GameState<turn::Black>> { self.by_color(|_| None, Some) }
 
-  pub fn as_white_game(&self) -> Option<&Game<turn::White>> { self.by_color_ref(Some, |_| None) }
+  pub fn as_white_game(&self) -> Option<&GameState<turn::White>> { self.by_color_ref(Some, |_| None) }
 
-  pub fn as_black_game(&self) -> Option<&Game<turn::Black>> { self.by_color_ref(|_| None, Some) }
+  pub fn as_black_game(&self) -> Option<&GameState<turn::Black>> { self.by_color_ref(|_| None, Some) }
 
-  pub fn as_white_game_mut(&mut self) -> Option<&mut Game<turn::White>> { self.by_color_mut(Some, |_| None) }
+  pub fn as_white_game_mut(&mut self) -> Option<&mut GameState<turn::White>> {
+    self.by_color_mut(Some, |_| None)
+  }
 
-  pub fn as_black_game_mut(&mut self) -> Option<&mut Game<turn::Black>> { self.by_color_mut(|_| None, Some) }
+  pub fn as_black_game_mut(&mut self) -> Option<&mut GameState<turn::Black>> {
+    self.by_color_mut(|_| None, Some)
+  }
 
-  pub fn papamu(&self) -> &Papamu { self.by_color_ref(Game::papamu, Game::papamu) }
+  pub fn papamu(&self) -> &Papamu { self.by_color_ref(GameState::papamu, GameState::papamu) }
 
-  pub fn next_turn<T: ops::Deref<Target = Position>, Ts: IntoIterator<Item = T>>(&mut self,
-                                                                                 source: Position,
-                                                                                 targets: Ts)
-                                                                                 -> errors::Result<()> {
+  pub fn next_turn<Ts: IntoIterator>(&mut self, source: Position, targets: Ts) -> errors::Result<()>
+    where Ts::Item: Borrow<Position> {
     *self = match *self {
-      AnyGame::White(game) => AnyGame::Black(try!(game.next_turn(source, targets))),
-      AnyGame::Black(game) => AnyGame::White(try!(game.next_turn(source, targets))),
+      Game::White(game) => Game::Black(try!(game.next_turn(source, targets))),
+      Game::Black(game) => Game::White(try!(game.next_turn(source, targets))),
     };
     Ok(())
   }
