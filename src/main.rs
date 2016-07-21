@@ -128,11 +128,11 @@ fn run(cxt: Context) -> errors::Result<()> {
   let mut events = cxt.window.events();
   while let Some(event) = events.next(cxt.window) {
     match event {
-      Event::Render(arg) => (),
-      Event::AfterRender(arg) => (),
-      Event::Update(arg) => (),
-      Event::Idle(arg) => (),
-      Event::Input(arg) => (),
+      Event::Render(params) => (),
+      Event::AfterRender(params) => (),
+      Event::Update(params) => (),
+      Event::Idle(params) => (),
+      Event::Input(params) => (),
     }
   }
   Ok(())
