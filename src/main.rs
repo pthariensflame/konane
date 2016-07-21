@@ -78,9 +78,13 @@ struct GameContext<'a> {
   window: &'a mut PistonWindow,
   drag_ctrl: &'a mut DragController,
   scene: &'a mut Scene<Texture<gfx_device_gl::Resources>>,
+  sprite_ids: &'a mut SpriteIDs,
   game: &'a mut Game,
   rng: &'a mut StdRng,
 }
+
+#[derive(Clone,Copy,Debug,Eq,PartialEq,Hash,Default)]
+struct SpriteIDs {}
 
 fn setup(matches: clap::ArgMatches) -> errors::Result<()> {
   let rng = &mut try!(StdRng::new());
@@ -89,6 +93,7 @@ fn setup(matches: clap::ArgMatches) -> errors::Result<()> {
     window: &mut try!(WindowSettings::new("kōnane", [1000, 1000]).exit_on_esc(true).build()),
     drag_ctrl: &mut DragController::new(),
     scene: &mut Scene::new(),
+    sprite_ids: &mut SpriteIDs::default(),
     game: &mut if rng.gen() { Game::new_white() } else { Game::new_black() },
     rng: rng,
   };
