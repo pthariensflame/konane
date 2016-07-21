@@ -398,21 +398,21 @@ impl Game {
 
   pub fn current_player(&self) -> Occupancy { self.by_color_ref(|_| Occupancy::White, |_| Occupancy::Black) }
 
-  pub fn to_white_game(self) -> Option<GameState<turn::White>> { self.by_color(Some, |_| None) }
+  pub fn new_white() -> Game { Game::White(GameState::default()) }
 
-  pub fn to_black_game(self) -> Option<GameState<turn::Black>> { self.by_color(|_| None, Some) }
+  pub fn new_black() -> Game { Game::Black(GameState::default()) }
 
-  pub fn as_white_game(&self) -> Option<&GameState<turn::White>> { self.by_color_ref(Some, |_| None) }
+  pub fn to_white(self) -> Option<GameState<turn::White>> { self.by_color(Some, |_| None) }
 
-  pub fn as_black_game(&self) -> Option<&GameState<turn::Black>> { self.by_color_ref(|_| None, Some) }
+  pub fn to_black(self) -> Option<GameState<turn::Black>> { self.by_color(|_| None, Some) }
 
-  pub fn as_white_game_mut(&mut self) -> Option<&mut GameState<turn::White>> {
-    self.by_color_mut(Some, |_| None)
-  }
+  pub fn as_white(&self) -> Option<&GameState<turn::White>> { self.by_color_ref(Some, |_| None) }
 
-  pub fn as_black_game_mut(&mut self) -> Option<&mut GameState<turn::Black>> {
-    self.by_color_mut(|_| None, Some)
-  }
+  pub fn as_black(&self) -> Option<&GameState<turn::Black>> { self.by_color_ref(|_| None, Some) }
+
+  pub fn as_white_mut(&mut self) -> Option<&mut GameState<turn::White>> { self.by_color_mut(Some, |_| None) }
+
+  pub fn as_black_mut(&mut self) -> Option<&mut GameState<turn::Black>> { self.by_color_mut(|_| None, Some) }
 
   pub fn papamu(&self) -> &Papamu { self.by_color_ref(GameState::papamu, GameState::papamu) }
 
