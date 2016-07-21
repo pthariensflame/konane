@@ -129,10 +129,16 @@ fn run(cxt: Context) -> errors::Result<()> {
   while let Some(event) = events.next(cxt.window) {
     match event {
       Event::Render(params) => (),
-      Event::AfterRender(params) => (),
+      Event::AfterRender(AfterRenderArgs) => (),
       Event::Update(params) => (),
       Event::Idle(params) => (),
-      Event::Input(params) => (),
+      Event::Input(Input::Press(button)) => (),
+      Event::Input(Input::Release(button)) => (),
+      Event::Input(Input::Move(motion)) => (),
+      Event::Input(Input::Text(string)) => (),
+      Event::Input(Input::Resize(width, height)) => (),
+      Event::Input(Input::Focus(on_window)) => (),
+      Event::Input(Input::Cursor(on_window)) => (),
     }
   }
   Ok(())
