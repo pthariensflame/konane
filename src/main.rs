@@ -41,10 +41,19 @@ mod errors {
       ::konane::errors::Error, ::konane::errors::ErrorKind, Game;
     }
     foreign_links {
-      ::opengl_graphics::error::Error, OpenGL, "OpenGL graphics error";
+      ::clap::Error, Clap, "clap error";
     }
-    errors {}
+    errors {
+      OpenGL(inner: ::opengl_graphics::error::Error) {
+        description("OpenGL graphics error")
+        display("OpenGL graphics error: {}", inner)
+      }
+    }
+  }
+
+  impl From<::opengl_graphics::error::Error> for Error {
+    fn from(inner: ::opengl_graphics::error::Error) -> Error { ErrorKind::OpenGL(inner).into() }
   }
 }
 
-fn main() { let gl = GlGraphics::new(OpenGL::V4_5); }
+fn main() { let gl = GlGraphics::new(OpenGL::V2_0); }
