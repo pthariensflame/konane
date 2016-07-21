@@ -29,3 +29,8 @@ error-chain = "~0.2.1"
 [lib]
 name = "konane"
 path = "src/lib.rs"
+
+[[bin]]
+name = "konane"
+path = "src/main.rs"
+doc = false

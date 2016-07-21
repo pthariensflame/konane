@@ -46,48 +46,53 @@ pub mod turn {
 
 pub mod errors {
   error_chain! {
-      types {
-        Error, ErrorKind, ChainErr, Result;
-      }
-      links {}
-      foreign_links {}
-      errors {
-        IllegalTarget(source_occ: ::Occupancy,
-                      source_pos: ::Position,
-                      target_pos: ::Position) {
-          description("Cannot legally move indicated piece to target position")
-          display("Cannot move {} piece at source {} to target {}", source_occ, source_pos, target_pos)
-        }
-        OcuppiedTarget(target_pos: ::Position) {
-          description("Target position is not empty")
-          display("Target {} is not empty", target_pos)
-        }
-        EmptySource(source_pos: ::Position) {
-          description("Source position is empty")
-          display("Source {} is not empty", source_pos)
-        }
-        WrongColor(source_occ: ::Occupancy,
-                   source_pos: ::Position,
-                   desired_occ: ::Occupancy) {
-          description("Cannot legally move indicated piece during this turn")
-          display("Cannot move {} piece at source {} during {} turn", source_occ, source_pos, desired_occ)
-        }
-        NoTargets(source_occ: ::Occupancy,
-                  source_pos: ::Position) {
-          description("No target positions were given")
-          display("No target positions were given for the {} piece at source {}", source_occ, source_pos)
-        }
-        IllegalJump(source_occ: ::Occupancy,
+    types {
+      Error, ErrorKind, ChainErr, Result;
+    }
+    links {}
+    foreign_links {}
+    errors {
+      IllegalTarget(source_occ: ::Occupancy,
                     source_pos: ::Position,
-                    mid_occ: ::Occupancy,
-                    mid_pos: ::Position,
                     target_pos: ::Position) {
-          description("Cannot perform the indicated jump")
-          display("Cannot jump the {} piece at {} over the currently-{} {} to {}",
-                  source_occ, source_pos, mid_occ, mid_pos, target_pos)
-        }
+        description("Cannot legally move indicated piece to target position")
+        display("Cannot move {} piece at source {} to target {}",
+                source_occ, source_pos, target_pos)
+      }
+      OcuppiedTarget(target_pos: ::Position) {
+        description("Target position is not empty")
+        display("Target {} is not empty",
+                target_pos)
+      }
+      EmptySource(source_pos: ::Position) {
+        description("Source position is empty")
+        display("Source {} is not empty",
+                source_pos)
+      }
+      WrongColor(source_occ: ::Occupancy,
+                 source_pos: ::Position,
+                 desired_occ: ::Occupancy) {
+        description("Cannot legally move indicated piece during this turn")
+        display("Cannot move {} piece at source {} during {} turn",
+                source_occ, source_pos, desired_occ)
+      }
+      NoTargets(source_occ: ::Occupancy,
+                source_pos: ::Position) {
+        description("No target positions were given")
+        display("No target positions were given for the {} piece at source {}",
+                source_occ, source_pos)
+      }
+      IllegalJump(source_occ: ::Occupancy,
+                  source_pos: ::Position,
+                  mid_occ: ::Occupancy,
+                  mid_pos: ::Position,
+                  target_pos: ::Position) {
+        description("Cannot perform the indicated jump")
+        display("Cannot jump the {} piece at {} over the currently-{} {} to {}",
+                source_occ, source_pos, mid_occ, mid_pos, target_pos)
       }
     }
+  }
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
