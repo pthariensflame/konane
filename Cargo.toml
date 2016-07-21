@@ -24,13 +24,17 @@ license = "Apache-2.0"
 keywords = ["game"]
 
 [dependencies]
+gfx_device_gl = "~0.11.0"
 error-chain = "~0.2.1"
-piston = "~0.24.0"
-piston2d-graphics = "~0.16.0"
-pistoncore-glutin_window = "~0.28.0"
-piston2d-opengl_graphics = "~0.31.0"
+piston_window = "~0.50.0"
+piston2d-sprite = "~0.27.0"
+piston2d-drag_controller = "~0.14.0"
 clap = "~2.9.2"
 rand = "~0.3.14"
+
+[dependencies.uuid]
+version = "~0.2.2"
+features = ["use_std"]
 
 [lib]
 name = "konane"
