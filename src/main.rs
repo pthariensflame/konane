@@ -19,17 +19,32 @@ use konane::{Game, Occupancy, Position};
 #[macro_use]
 extern crate error_chain;
 
+extern crate piston;
+extern crate graphics;
+extern crate glutin_window;
+extern crate opengl_graphics;
+use piston::window::WindowSettings;
+use piston::event_loop::*;
+use piston::input::*;
+use glutin_window::GlutinWindow as Window;
+use opengl_graphics::{GlGraphics, OpenGL};
+
+#[macro_use]
+extern crate clap;
+
 mod errors {
   error_chain! {
     types {
       Error, ErrorKind, ChainErr, Result;
     }
     links {
-      ::konane::errors::Error, ::konane::errors::ErrorKind, Konane;
+      ::konane::errors::Error, ::konane::errors::ErrorKind, Game;
     }
-    foreign_links {}
+    foreign_links {
+      ::opengl_graphics::error::Error, OpenGL, "OpenGL graphics error";
+    }
     errors {}
   }
 }
 
-fn main() {}
+fn main() { let gl = GlGraphics::new(OpenGL::V4_5); }
