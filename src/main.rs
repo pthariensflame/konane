@@ -68,6 +68,7 @@ fn main() {
       .default_value(opengl_version_enum_to_str(OPENGL_VERSION_DEFAULT))
       .help("The version of OpenGL to use")
       .possible_values(&OPENGL_VERSIONS_STR))
+    .setting(clap::AppSettings::ColoredHelp)
     .get_matches();
   let gl_version = opengl_version_str_to_enum(matches.value_of("OpenGL version").expect("impossible"));
   setup(matches, gl_version).expect("kōnane encountered an error");
