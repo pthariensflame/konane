@@ -31,7 +31,6 @@ piston2d-sprite = "~0.27.0"
 piston2d-drag_controller = "~0.14.0"
 clap = "~2.9.2"
 rand = "~0.3.14"
-
 [dependencies.uuid]
 version = "~0.2.2"
 features = ["use_std"]
