@@ -25,7 +25,7 @@ keywords = ["game"]
 
 [dependencies]
 gfx_device_gl = "~0.11.0"
-error-chain = "~0.2.1"
+error-chain = "~0.2.2"
 piston_window = "~0.50.0"
 piston2d-sprite = "~0.27.0"
 piston2d-drag_controller = "~0.14.0"
