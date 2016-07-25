@@ -23,11 +23,12 @@ fn handle_c_api() {}
 
 #[cfg(feature = "c_api")]
 fn handle_c_api() {
+  let out_dir: std::path::PathBuf =
+    std::env::var_os("OUT_DIR").expect("could not find output directory").into();
   cheddar::Cheddar::new()
     .expect("unable to read cargo manifest")
     .module("c_api")
     .expect("malformed header path")
-    .run_build(std::env::join_paths(&[std::env::var("OUT_DIR").expect("could not find output directory"),
-                                      "include/konane.h".to_string()])
-                 .expect("failure to join paths"));
+    .run_build(out_dir.join("include").join("konane.h"));
+  // std::fs::copy(out_dir.join("include").join("konane.h"), )
 }

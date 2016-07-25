@@ -80,7 +80,6 @@ mod errors {
       ::clap::Error, Clap, "clap error";
       ::uuid::ParseError, UUIDParse, "UUID parse error";
       ::std::io::Error, IO, "I/O error";
-      ::std::env::JoinPathsError, EnvJoinPaths, "path-joining environment error";
       ::piston_image::ImageError, PistonImage, "Piston engine image error";
       ::gfx_core::factory::CombinedError, GFXCombined, "GFX engine combined error";
     }
