@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::{collections, env, io};
+
 extern crate konane;
 use konane::{Game, Occupancy};
 use konane::Position as Pos;
@@ -27,6 +29,7 @@ extern crate gfx_device_gl;
 extern crate piston_window;
 extern crate sprite;
 extern crate drag_controller;
+use gfx_device_gl::{Factory as GLFactory, Resources as GLResources};
 use piston_window::*;
 use sprite::*;
 use drag_controller::*;
@@ -38,13 +41,23 @@ extern crate rand;
 use rand::{Rng, StdRng};
 
 fn main() {
-  let matches = clap::App::new("kōnane")
+  let mut clap_app = clap::App::new("kōnane")
     .version(crate_version!())
-    .author("Alexander Ronald Altman <alexanderaltman@me.com>")
+    .author(crate_authors!())
     .about("The ancient polynesian game of kōnane")
-    .setting(clap::AppSettings::ColoredHelp)
-    .get_matches();
-  setup(matches).expect("kōnane encountered an error");
+    .arg(clap::Arg::with_name("generate bash completions")
+      .short("G")
+      .long("gen-bash-completions")
+      .help("Generate a bash completion file to standard output"))
+    .setting(clap::AppSettings::ColoredHelp);
+  let matches = clap_app.clone().get_matches();
+  if matches.is_present("generate bash completions") {
+    clap_app.gen_completions_to(env::args().nth(0).expect("no executable name found"),
+                                clap::Shell::Bash,
+                                &mut io::stdout());
+  } else {
+    setup(matches).expect("kōnane encountered an error");
+  }
 }
 
 mod errors {
@@ -77,14 +90,15 @@ struct GameContext<'a> {
   args: clap::ArgMatches<'a>,
   window: &'a mut PistonWindow,
   drag_ctrl: &'a mut DragController,
-  scene: &'a mut Scene<Texture<gfx_device_gl::Resources>>,
+  scene: &'a mut Scene<Texture<GLResources>>,
   sprite_ids: &'a mut SpriteIDs,
   game: &'a mut Game,
   rng: &'a mut StdRng,
 }
 
 #[derive(Clone,Copy,Debug,Eq,PartialEq,Hash,Default)]
-struct SpriteIDs {}
+struct SpriteIDs {
+}
 
 fn setup(matches: clap::ArgMatches) -> errors::Result<()> {
   let rng = &mut try!(StdRng::new());
