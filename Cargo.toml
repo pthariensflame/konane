@@ -22,6 +22,10 @@ repository = "https://github.com/pthariensflame/konane"
 readme = "README.md"
 license = "Apache-2.0"
 keywords = ["game"]
+build = "build.rs"
+
+[build-dependencies]
+rusty-cheddar = {version = "~0.3.3", optional = true}
 
 [dependencies]
 image = "~0.10.1"
@@ -45,3 +49,7 @@ path = "src/lib.rs"
 name = "konane"
 path = "src/main.rs"
 doc = false
+
+[features]
+c_api = ["rusty-cheddar"]
+default = []

@@ -43,6 +43,7 @@ extern crate clap;
 extern crate rand;
 use rand::{Rng, StdRng};
 
+const TILE_SIZE: u32 = 75;
 const WHITE_PIECE_DATA: &'static [u8] = include_bytes!("../resources/white_piece.png");
 const BLACK_PIECE_DATA: &'static [u8] = include_bytes!("../resources/black_piece.png");
 const EMPTY_PIECE_DATA: &'static [u8] = include_bytes!("../resources/empty_piece.png");
@@ -114,7 +115,8 @@ struct SpriteTextures {
 }
 
 fn setup(matches: clap::ArgMatches) -> errors::Result<()> {
-  let mut window: PistonWindow = try!(WindowSettings::new("kōnane", [1000, 1000]).exit_on_esc(true).build());
+  let mut window: PistonWindow =
+    try!(WindowSettings::new("kōnane", [TILE_SIZE * 10, TILE_SIZE * 10]).exit_on_esc(true).build());
   let textures = SpriteTextures {
     white_piece: try!(load_texture(WHITE_PIECE_DATA, &mut window.factory)),
     black_piece: try!(load_texture(BLACK_PIECE_DATA, &mut window.factory)),
@@ -137,7 +139,7 @@ fn setup(matches: clap::ArgMatches) -> errors::Result<()> {
 fn load_texture(texture_data: &[u8], factory: &mut GLFactory) -> errors::Result<Texture<GLResources>> {
   let texture_image = try!(piston_image::load_from_memory_with_format(texture_data,
                                                                       piston_image::ImageFormat::PNG))
-                        .resize(100, 100, piston_image::Nearest);
+                        .resize(TILE_SIZE, TILE_SIZE, piston_image::Nearest);
   let texture_buffer = texture_image.as_rgba8().cloned().unwrap_or_else(|| texture_image.to_rgba());
   Ok(try!(Texture::from_image(factory, &texture_buffer, &TextureSettings::new())))
 }

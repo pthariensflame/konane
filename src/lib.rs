@@ -425,3 +425,41 @@ impl Game {
     Ok(())
   }
 }
+
+#[cfg(feature = "c_api")]
+pub use c_api::*;
+
+#[cfg(feature = "c_api")]
+mod c_api {
+  #[repr(C)]
+  #[no_mangle]
+  pub struct KonaneGame(::Game);
+
+  #[repr(C)]
+  #[no_mangle]
+  pub enum KonaneOccupancy {
+    KonaneOccupancyWhite,
+    KonaneOccupancyBlack,
+    KonaneOccupancyEmpty,
+  }
+
+  impl From<::Occupancy> for KonaneOccupancy {
+    fn from(occupancy: ::Occupancy) -> KonaneOccupancy {
+      match occupancy {
+        ::Occupancy::White => KonaneOccupancy::KonaneOccupancyWhite,
+        ::Occupancy::Black => KonaneOccupancy::KonaneOccupancyBlack,
+        ::Occupancy::Empty => KonaneOccupancy::KonaneOccupancyEmpty,
+      }
+    }
+  }
+
+  impl From<KonaneOccupancy> for ::Occupancy {
+    fn from(occupancy: KonaneOccupancy) -> ::Occupancy {
+      match occupancy {
+        KonaneOccupancy::KonaneOccupancyWhite => ::Occupancy::White,
+        KonaneOccupancy::KonaneOccupancyBlack => ::Occupancy::Black,
+        KonaneOccupancy::KonaneOccupancyEmpty => ::Occupancy::Empty,
+      }
+    }
+  }
+}
