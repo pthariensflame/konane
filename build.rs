@@ -29,5 +29,5 @@ fn handle_c_api() {
     .expect("unable to read cargo manifest")
     .module("c_api")
     .expect("malformed header path")
-    .run_build(top_dir.join("gen").join("include").join("konane.h"));
+    .run_build(top_dir.join("target").join("gen").join("include").join("konane.h"));
 }
