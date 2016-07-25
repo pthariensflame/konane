@@ -13,12 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![cfg_attr(feature = "c-api", feature(libc))]
+
 use std::marker::PhantomData;
 use std::borrow::Borrow;
 use std::{fmt, hash, ops};
 
 #[macro_use]
 extern crate error_chain;
+
+#[cfg(feature = "c-api")]
+extern crate libc;
 
 pub mod turn {
   pub enum Black {}
@@ -324,6 +329,48 @@ impl<Tn: turn::Turn> GameState<Tn> {
       phantom_turn: PhantomData,
     })
   }
+
+  pub fn can_move(&self) -> bool {
+    fn gen_adj(x0: u8, y0: u8) -> Vec<((u8, u8), (u8, u8))> {
+      let mut x1_vec = Vec::<u8>::new();
+      let mut y1_vec = Vec::<u8>::new();
+      let mut x2_vec = Vec::<u8>::new();
+      let mut y2_vec = Vec::<u8>::new();
+      if x0 > 1 {
+        x1_vec.push(x0 - 1);
+        x2_vec.push(x0 - 2);
+      }
+      if x0 < 9 {
+        x1_vec.push(x0 + 1);
+        x2_vec.push(x0 + 2);
+      }
+      if y0 > 1 {
+        y1_vec.push(y0 - 1);
+        y2_vec.push(y0 - 2);
+      }
+      if y0 < 9 {
+        y1_vec.push(y0 + 1);
+        y2_vec.push(y0 + 2);
+      }
+      x1_vec.into_iter()
+            .map(|x1| (x1, y0))
+            .chain(y1_vec.into_iter().map(|y1| (x0, y1)))
+            .zip(x2_vec.into_iter().map(|x2| (x2, y0)).chain(y2_vec.into_iter().map(|y2| (x0, y2))))
+            .collect()
+    }
+    for x0 in 0..10u8 {
+      for y0 in 0..10u8 {
+        for ((x1, y1), (x2, y2)) in gen_adj(x0, y0) {
+          if self[Position::new(x2, y2).unwrap_or_else(|| unreachable!())].is_empty() &&
+             self[Position::new(x1, y1).unwrap_or_else(|| unreachable!())] ==
+             <Tn::Next as turn::Turn>::piece_type() {
+            return true;
+          }
+        }
+      }
+    }
+    false
+  }
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
@@ -424,42 +471,14 @@ impl Game {
     };
     Ok(())
   }
+
+  pub fn can_move(&self) -> bool { self.by_color_ref(GameState::can_move, GameState::can_move) }
 }
 
 #[cfg(feature = "c-api")]
+#[doc = "false"]
 pub use c_api::*;
 
 #[cfg(feature = "c-api")]
-mod c_api {
-  #[repr(C)]
-  #[no_mangle]
-  pub struct KonaneGame(::Game);
-
-  #[repr(C)]
-  #[no_mangle]
-  pub enum KonaneOccupancy {
-    KonaneOccupancyWhite,
-    KonaneOccupancyBlack,
-    KonaneOccupancyEmpty,
-  }
-
-  impl From<::Occupancy> for KonaneOccupancy {
-    fn from(occupancy: ::Occupancy) -> KonaneOccupancy {
-      match occupancy {
-        ::Occupancy::White => KonaneOccupancy::KonaneOccupancyWhite,
-        ::Occupancy::Black => KonaneOccupancy::KonaneOccupancyBlack,
-        ::Occupancy::Empty => KonaneOccupancy::KonaneOccupancyEmpty,
-      }
-    }
-  }
-
-  impl From<KonaneOccupancy> for ::Occupancy {
-    fn from(occupancy: KonaneOccupancy) -> ::Occupancy {
-      match occupancy {
-        KonaneOccupancy::KonaneOccupancyWhite => ::Occupancy::White,
-        KonaneOccupancy::KonaneOccupancyBlack => ::Occupancy::Black,
-        KonaneOccupancy::KonaneOccupancyEmpty => ::Occupancy::Empty,
-      }
-    }
-  }
-}
+#[doc = "false"]
+mod c_api;

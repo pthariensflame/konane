@@ -13,7 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(feature = "c-api")]
+#![allow(unused_imports)]
+
+use std::{env, path};
+
+#[cfg(feature = "rusty-cheddar")]
 extern crate cheddar;
 
 fn main() { handle_c_api(); }
@@ -23,11 +27,12 @@ fn handle_c_api() {}
 
 #[cfg(feature = "c-api")]
 fn handle_c_api() {
-  let top_dir: std::path::PathBuf =
-    std::env::var_os("CARGO_MANIFEST_DIR").expect("could not find cargo manifest directory").into();
+  let top_dir: path::PathBuf =
+    env::var_os("CARGO_MANIFEST_DIR").expect("could not find cargo manifest directory").into();
+  let header_dir = top_dir.join("target").join("gen").join("include");
   cheddar::Cheddar::new()
     .expect("unable to read cargo manifest")
     .module("c_api")
     .expect("malformed header path")
-    .run_build(top_dir.join("target").join("gen").join("include").join("konane.h"));
+    .run_build(header_dir.join("konane.h"));
 }
