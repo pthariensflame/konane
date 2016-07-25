@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[allow(missing_docs)]
+
 use std::{collections, env, io};
 
 extern crate konane;
@@ -25,10 +27,13 @@ use uuid::*;
 #[macro_use]
 extern crate error_chain;
 
+extern crate image as piston_image;
+extern crate gfx_core;
 extern crate gfx_device_gl;
 extern crate piston_window;
 extern crate sprite;
 extern crate drag_controller;
+use piston_image::GenericImage;
 use gfx_device_gl::{Factory as GLFactory, Resources as GLResources};
 use piston_window::*;
 use sprite::*;
@@ -39,6 +44,10 @@ extern crate clap;
 
 extern crate rand;
 use rand::{Rng, StdRng};
+
+const WHITE_PIECE_DATA: &'static [u8] = include_bytes!("../resources/white_piece.png");
+const BLACK_PIECE_DATA: &'static [u8] = include_bytes!("../resources/black_piece.png");
+const EMPTY_PIECE_DATA: &'static [u8] = include_bytes!("../resources/empty_piece.png");
 
 fn main() {
   let mut clap_app = clap::App::new("kōnane")
@@ -72,6 +81,9 @@ mod errors {
       ::clap::Error, Clap, "clap error";
       ::uuid::ParseError, UUIDParse, "UUID parse error";
       ::std::io::Error, IO, "I/O error";
+      ::std::env::JoinPathsError, EnvJoinPaths, "path-joining environment error";
+      ::piston_image::ImageError, PistonImage, "Piston engine image error";
+      ::gfx_core::factory::CombinedError, GFXCombined, "GFX engine combined error";
     }
     errors {
       PistonGlyph(inner: ::piston_window::GlyphError) {
@@ -88,34 +100,60 @@ mod errors {
 
 struct GameContext<'a> {
   args: clap::ArgMatches<'a>,
+  textures: SpriteTextures,
   window: &'a mut PistonWindow,
   drag_ctrl: &'a mut DragController,
   scene: &'a mut Scene<Texture<GLResources>>,
-  sprite_ids: &'a mut SpriteIDs,
+  sprite_map: &'a mut collections::HashMap<Pos, Uuid>,
   game: &'a mut Game,
   rng: &'a mut StdRng,
 }
 
-#[derive(Clone,Copy,Debug,Eq,PartialEq,Hash,Default)]
-struct SpriteIDs {
+struct SpriteTextures {
+  white_piece: Texture<GLResources>,
+  black_piece: Texture<GLResources>,
+  empty_piece: Texture<GLResources>,
 }
 
 fn setup(matches: clap::ArgMatches) -> errors::Result<()> {
-  let rng = &mut try!(StdRng::new());
-  let mut cxt = GameContext {
+  let mut window: PistonWindow = try!(WindowSettings::new("kōnane", [1000, 1000]).exit_on_esc(true).build());
+  let textures = SpriteTextures {
+    white_piece: try!(load_texture(WHITE_PIECE_DATA, &mut window.factory)),
+    black_piece: try!(load_texture(BLACK_PIECE_DATA, &mut window.factory)),
+    empty_piece: try!(load_texture(EMPTY_PIECE_DATA, &mut window.factory)),
+  };
+  let mut rng = try!(StdRng::new());
+  let cxt = GameContext {
     args: matches,
-    window: &mut try!(WindowSettings::new("kōnane", [1000, 1000]).exit_on_esc(true).build()),
+    textures: textures,
+    window: &mut window,
     drag_ctrl: &mut DragController::new(),
     scene: &mut Scene::new(),
-    sprite_ids: &mut SpriteIDs::default(),
+    sprite_map: &mut collections::HashMap::new(),
     game: &mut if rng.gen() { Game::new_white() } else { Game::new_black() },
-    rng: rng,
+    rng: &mut rng,
   };
-  try!(setup_scene(&mut cxt));
-  run(cxt)
+  setup_scene(cxt).and_then(run)
 }
 
-fn setup_scene(cxt: &mut GameContext) -> errors::Result<()> { Ok(()) }
+fn load_texture(texture_data: &[u8], factory: &mut GLFactory) -> errors::Result<Texture<GLResources>> {
+  let texture_image = try!(piston_image::load_from_memory_with_format(texture_data,
+                                                                      piston_image::ImageFormat::PNG))
+                        .resize(100, 100, piston_image::Nearest);
+  let texture_buffer = texture_image.as_rgba8().cloned().unwrap_or_else(|| texture_image.to_rgba());
+  Ok(try!(Texture::from_image(factory, &texture_buffer, &TextureSettings::new())))
+}
+
+fn setup_scene(cxt: GameContext) -> errors::Result<GameContext> {
+  for x in 0..10u8 {
+    for y in 0..10u8 {
+      if (x + y) % 2 == 0 {
+      } else {
+      }
+    }
+  }
+  Ok(cxt)
+}
 
 fn run(cxt: GameContext) -> errors::Result<()> {
   let mut events = cxt.window.events();

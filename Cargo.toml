@@ -24,6 +24,8 @@ license = "Apache-2.0"
 keywords = ["game"]
 
 [dependencies]
+image = "~0.10.1"
+gfx_core = "~0.4.0"
 gfx_device_gl = "~0.11.0"
 error-chain = "~0.2.2"
 piston_window = "~0.50.0"
