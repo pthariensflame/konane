@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(unknown_lints, block_in_if_condition_stmt)]
 #![cfg_attr(feature = "c-api", feature(libc))]
 
 use std::marker::PhantomData;

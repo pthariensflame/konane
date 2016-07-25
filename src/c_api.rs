@@ -1,5 +1,3 @@
-#![allow(unknown_lints)]
-
 #[repr(C)]
 #[no_mangle]
 pub struct KonaneGame(::Game);
