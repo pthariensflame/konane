@@ -426,10 +426,10 @@ impl Game {
   }
 }
 
-#[cfg(feature = "c_api")]
+#[cfg(feature = "c-api")]
 pub use c_api::*;
 
-#[cfg(feature = "c_api")]
+#[cfg(feature = "c-api")]
 mod c_api {
   #[repr(C)]
   #[no_mangle]

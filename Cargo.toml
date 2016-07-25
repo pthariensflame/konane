@@ -49,5 +49,5 @@ path = "src/main.rs"
 doc = false
 
 [features]
-c_api = ["rusty-cheddar"]
+c-api = ["rusty-cheddar"]
 default = []

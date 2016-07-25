@@ -13,15 +13,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(feature = "c_api")]
+#[cfg(feature = "c-api")]
 extern crate cheddar;
 
 fn main() { handle_c_api(); }
 
-#[cfg(not(feature = "c_api"))]
+#[cfg(not(feature = "c-api"))]
 fn handle_c_api() {}
 
-#[cfg(feature = "c_api")]
+#[cfg(feature = "c-api")]
 fn handle_c_api() {
   let out_dir: std::path::PathBuf =
     std::env::var_os("OUT_DIR").expect("could not find output directory").into();
