@@ -190,7 +190,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd ../..\n~/.cargo/bin/cargo build --quiet --release --features c-api --lib\n";
+			shellScript = "cd ../..\n~/.cargo/bin/cargo build --release --features c-api --lib\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
