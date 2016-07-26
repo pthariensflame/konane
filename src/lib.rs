@@ -14,7 +14,6 @@
 // limitations under the License.
 
 #![allow(unknown_lints, block_in_if_condition_stmt)]
-#![cfg_attr(feature = "c-api", feature(libc))]
 
 use std::marker::PhantomData;
 use std::borrow::Borrow;
@@ -22,9 +21,6 @@ use std::{fmt, hash, ops};
 
 #[macro_use]
 extern crate error_chain;
-
-#[cfg(feature = "c-api")]
-extern crate libc;
 
 pub mod turn {
   pub enum Black {}

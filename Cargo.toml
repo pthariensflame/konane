@@ -28,6 +28,7 @@ build = "build.rs"
 rusty-cheddar = {version = "~0.3.3", optional = true}
 
 [dependencies]
+libc = {version = "~0.2.14", optional = true}
 image = "~0.10.1"
 gfx_core = "~0.4.0"
 gfx_device_gl = "~0.11.0"
@@ -49,5 +50,5 @@ path = "src/main.rs"
 doc = false
 
 [features]
-c-api = ["rusty-cheddar"]
+c-api = ["rusty-cheddar", "libc"]
 default = []
