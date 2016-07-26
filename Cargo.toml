@@ -43,7 +43,6 @@ uuid = {version = "~0.2.2", features = ["use_std"]}
 [lib]
 name = "konane"
 path = "src/lib.rs"
-crate-type = ["staticlib"]
 
 [[bin]]
 name = "konane"
