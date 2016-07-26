@@ -7,13 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		11E08ABB1D47055700909F34 /* Konane.h in Sources */ = {isa = PBXBuildFile; fileRef = 11E08AB91D47055700909F34 /* Konane.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		11E08AC21D47072F00909F34 /* konane.h in Headers */ = {isa = PBXBuildFile; fileRef = 11E08AC11D47072F00909F34 /* konane.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		11E08AC41D47078400909F34 /* Konane.h in Headers */ = {isa = PBXBuildFile; fileRef = 11E08AB91D47055700909F34 /* Konane.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		11E08AC71D4709A100909F34 /* Konane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11E08AC61D4709A100909F34 /* Konane.swift */; };
+		11E08AD81D47147400909F34 /* libm.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 11E08AD71D47147400909F34 /* libm.tbd */; };
+		11E08ADA1D47147B00909F34 /* libc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 11E08AD91D47147B00909F34 /* libc.tbd */; };
+		11E08ADC1D47148300909F34 /* libSystem.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 11E08ADB1D47148300909F34 /* libSystem.tbd */; };
+		11E08AE01D4714C200909F34 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11E08ADF1D4714C200909F34 /* Foundation.framework */; };
+		11E08AE21D4714CB00909F34 /* libswiftFoundation.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 11E08AE11D4714CB00909F34 /* libswiftFoundation.tbd */; };
+		11E08AE31D4716E700909F34 /* libkonane.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11E08ADD1D4714A500909F34 /* libkonane.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		11E08AB61D47055700909F34 /* Konane.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Konane.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		11E08AB91D47055700909F34 /* Konane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.objj.h; path = Konane.h; sourceTree = "<group>"; };
 		11E08ABA1D47055700909F34 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		11E08AC11D47072F00909F34 /* konane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.objj.h; name = konane.h; path = ../../../target/gen/include/konane.h; sourceTree = "<group>"; };
+		11E08AC61D4709A100909F34 /* Konane.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Konane.swift; sourceTree = "<group>"; };
+		11E08AD51D4709CE00909F34 /* Konane copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Konane copy-Info.plist"; path = "/Users/Alexander/Documents/Programming Projects/My Projects/Frameworks and Libraries/Rust/konane/swift-bindings/Konane/Konane copy-Info.plist"; sourceTree = "<absolute>"; };
+		11E08AD71D47147400909F34 /* libm.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libm.tbd; path = usr/lib/libm.tbd; sourceTree = SDKROOT; };
+		11E08AD91D47147B00909F34 /* libc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libc.tbd; path = usr/lib/libc.tbd; sourceTree = SDKROOT; };
+		11E08ADB1D47148300909F34 /* libSystem.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.tbd; path = usr/lib/libSystem.tbd; sourceTree = SDKROOT; };
+		11E08ADD1D4714A500909F34 /* libkonane.a */ = {isa = PBXFileReference; explicitFileType = compiled; name = libkonane.a; path = ../../target/release/libkonane.a; sourceTree = "<group>"; };
+		11E08ADF1D4714C200909F34 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		11E08AE11D4714CB00909F34 /* libswiftFoundation.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftFoundation.tbd; path = System/Library/PrivateFrameworks/Swift/libswiftFoundation.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -21,6 +38,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11E08ADC1D47148300909F34 /* libSystem.tbd in Frameworks */,
+				11E08ADA1D47147B00909F34 /* libc.tbd in Frameworks */,
+				11E08AD81D47147400909F34 /* libm.tbd in Frameworks */,
+				11E08AE31D4716E700909F34 /* libkonane.a in Frameworks */,
+				11E08AE01D4714C200909F34 /* Foundation.framework in Frameworks */,
+				11E08AE21D4714CB00909F34 /* libswiftFoundation.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,6 +55,8 @@
 			children = (
 				11E08AB81D47055700909F34 /* Konane */,
 				11E08AB71D47055700909F34 /* Products */,
+				11E08AD51D4709CE00909F34 /* Konane copy-Info.plist */,
+				11E08AD61D47147400909F34 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -46,10 +71,33 @@
 		11E08AB81D47055700909F34 /* Konane */ = {
 			isa = PBXGroup;
 			children = (
+				11E08AC31D47074800909F34 /* C API */,
 				11E08AB91D47055700909F34 /* Konane.h */,
 				11E08ABA1D47055700909F34 /* Info.plist */,
+				11E08AC61D4709A100909F34 /* Konane.swift */,
 			);
 			path = Konane;
+			sourceTree = "<group>";
+		};
+		11E08AC31D47074800909F34 /* C API */ = {
+			isa = PBXGroup;
+			children = (
+				11E08AC11D47072F00909F34 /* konane.h */,
+			);
+			name = "C API";
+			sourceTree = "<group>";
+		};
+		11E08AD61D47147400909F34 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				11E08AE11D4714CB00909F34 /* libswiftFoundation.tbd */,
+				11E08ADF1D4714C200909F34 /* Foundation.framework */,
+				11E08ADD1D4714A500909F34 /* libkonane.a */,
+				11E08ADB1D47148300909F34 /* libSystem.tbd */,
+				11E08AD91D47147B00909F34 /* libc.tbd */,
+				11E08AD71D47147400909F34 /* libm.tbd */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -59,6 +107,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11E08AC41D47078400909F34 /* Konane.h in Headers */,
+				11E08AC21D47072F00909F34 /* konane.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +119,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 11E08ABE1D47055700909F34 /* Build configuration list for PBXNativeTarget "Konane" */;
 			buildPhases = (
+				11E08AC51D47092300909F34 /* ShellScript */,
 				11E08AB11D47055700909F34 /* Sources */,
 				11E08AB21D47055700909F34 /* Frameworks */,
 				11E08AB31D47055700909F34 /* Headers */,
@@ -96,6 +147,7 @@
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = H3WEZ39N73;
 						DevelopmentTeamName = "Alexander Altman";
+						LastSwiftMigration = 0800;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -127,12 +179,29 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		11E08AC51D47092300909F34 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+				../../target/release/libkonane.a,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd ../..\n~/.cargo/bin/cargo build --quiet --release --features c-api --lib\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		11E08AB11D47055700909F34 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11E08ABB1D47055700909F34 /* Konane.h in Sources */,
+				11E08AC71D4709A100909F34 /* Konane.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -178,6 +247,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../../target/gen/include;
+				LIBRARY_SEARCH_PATHS = ../../target/release;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -223,6 +294,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../../target/gen/include;
+				LIBRARY_SEARCH_PATHS = ../../target/release;
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
@@ -236,6 +309,7 @@
 		11E08ABF1D47055700909F34 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -246,9 +320,14 @@
 				INFOPLIST_FILE = Konane/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks/Swift",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.pthariensflame.Konane;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -256,6 +335,7 @@
 		11E08AC01D47055700909F34 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -266,6 +346,10 @@
 				INFOPLIST_FILE = Konane/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)$(SYSTEM_LIBRARY_DIR)/PrivateFrameworks/Swift",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.pthariensflame.Konane;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -292,6 +376,7 @@
 				11E08AC01D47055700909F34 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

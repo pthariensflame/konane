@@ -1,3 +1,18 @@
+// c_api.rs
+// Copyright 2016 Alexander Altman
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use std::{iter, ptr, slice};
 
 extern crate libc;
@@ -205,8 +220,8 @@ pub unsafe extern "C" fn konane_position_biadjacency(position1_ref: *const Konan
   let mut result = ptr::null_mut();
   if let Some(&initial_position1) = position1_ref.as_ref() {
     if let Some(&initial_position2) = position2_ref.as_ref() {
-      let mut position1: ::Position = initial_position1.into();
-      let mut position2: ::Position = initial_position2.into();
+      let position1: ::Position = initial_position1.into();
+      let position2: ::Position = initial_position2.into();
       result = position1.biadjacency(position2).map_or_else(ptr::null_mut, |position| {
         Box::into_raw(Box::new(position.into()))
       });
