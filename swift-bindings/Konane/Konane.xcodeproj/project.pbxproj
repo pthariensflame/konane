@@ -24,11 +24,10 @@
 		11E08ABA1D47055700909F34 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		11E08AC11D47072F00909F34 /* konane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.objj.h; name = konane.h; path = ../../../target/gen/include/konane.h; sourceTree = "<group>"; };
 		11E08AC61D4709A100909F34 /* Konane.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Konane.swift; sourceTree = "<group>"; };
-		11E08AD51D4709CE00909F34 /* Konane copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Konane copy-Info.plist"; path = "/Users/Alexander/Documents/Programming Projects/My Projects/Frameworks and Libraries/Rust/konane/swift-bindings/Konane/Konane copy-Info.plist"; sourceTree = "<absolute>"; };
 		11E08AD71D47147400909F34 /* libm.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libm.tbd; path = usr/lib/libm.tbd; sourceTree = SDKROOT; };
 		11E08AD91D47147B00909F34 /* libc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libc.tbd; path = usr/lib/libc.tbd; sourceTree = SDKROOT; };
 		11E08ADB1D47148300909F34 /* libSystem.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.tbd; path = usr/lib/libSystem.tbd; sourceTree = SDKROOT; };
-		11E08ADD1D4714A500909F34 /* libkonane.a */ = {isa = PBXFileReference; explicitFileType = compiled; name = libkonane.a; path = ../../target/release/libkonane.a; sourceTree = "<group>"; };
+		11E08ADD1D4714A500909F34 /* libkonane.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o"; name = libkonane.a; path = ../../target/release/libkonane.a; sourceTree = "<group>"; };
 		11E08ADF1D4714C200909F34 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		11E08AE11D4714CB00909F34 /* libswiftFoundation.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftFoundation.tbd; path = System/Library/PrivateFrameworks/Swift/libswiftFoundation.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -55,7 +54,6 @@
 			children = (
 				11E08AB81D47055700909F34 /* Konane */,
 				11E08AB71D47055700909F34 /* Products */,
-				11E08AD51D4709CE00909F34 /* Konane copy-Info.plist */,
 				11E08AD61D47147400909F34 /* Frameworks */,
 			);
 			sourceTree = "<group>";
