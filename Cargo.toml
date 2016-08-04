@@ -31,14 +31,14 @@ rusty-cheddar = {version = "~0.3.3", optional = true}
 libc = {version = "~0.2.14", optional = true}
 image = "~0.10.1"
 gfx_core = "~0.4.0"
-gfx_device_gl = "~0.11.0"
-error-chain = "~0.2.2"
-piston_window = "~0.50.0"
+gfx_device_gl = "~0.11.2"
+error-chain = "~0.3.0"
+piston_window = "~0.51.1"
 piston2d-sprite = "~0.27.0"
 piston2d-drag_controller = "~0.14.0"
-clap = "~2.9.3"
+clap = "~2.10.0"
 rand = "~0.3.14"
-uuid = {version = "~0.2.3", features = ["use_std"]}
+uuid = {version = "~0.3.0", features = ["use_std"]}
 
 [lib]
 name = "konane"
